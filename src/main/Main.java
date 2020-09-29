@@ -1,3 +1,4 @@
+package main;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import pojo.Player;
+import constants.Position;
+import pojo.BuliPlayer;
 
 public class Main
 {
@@ -18,7 +20,7 @@ public class Main
 	private static WebDriver driver;
 	private static String mailAdress;
 	private static String password;
-	private static List<Player> playerList = new ArrayList<>();
+	private static List<BuliPlayer> playerList = new ArrayList<>();
 
 	public static void main(String[] args) throws InterruptedException
 	{
@@ -48,6 +50,8 @@ public class Main
 		collectPlayers();
 		
 		System.out.println(playerList);
+		
+		driver.close();
 	}
 
 	private static void clickKader()
@@ -70,9 +74,27 @@ public class Main
 			String firstName = playerRow.findElement(By.className("firstName")).getText();
 			String lastName = playerRow.findElement(By.className("lastName")).getText();
 			String marktwert = playerRow.findElement(By.cssSelector(".price > strong")).getText();
-			playerList.add(new Player(firstName + " " + lastName, Integer.valueOf(marktwert.substring(2).replace(".", ""))));
-			System.out.println(firstName + " " + lastName + ", Marktwert: " + marktwert);
+			Position position = findPositionByPlayerRow(playerRow);
+			
+			playerList.add(new BuliPlayer(firstName, lastName, Integer.valueOf(marktwert.substring(2).replace(".", "")), position));
+			System.out.println(firstName + " " + lastName + ", Marktwert: " + marktwert + ", Position: " + position.name());
 		}
+	}
+	
+	private static Position findPositionByPlayerRow(WebElement playerRow)
+	{
+		List<WebElement> elements = playerRow.findElements(By.cssSelector(".playerBadges > div > span"));
+		for(WebElement element : elements)
+		{
+			for(Position pos : Position.values())
+			{
+				if(element.getText().equals(pos.name()))
+				{
+					return pos;
+				}
+			}
+		}
+		return null;
 	}
 
 	private static void clickSidebarTransfermarkt()
